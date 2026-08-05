@@ -1,0 +1,11 @@
+# --- Ingestion + smoke test ---
+requests>=2.31
+python-dotenv>=1.0
+
+# --- Data processing + feature store ---
+pandas==2.2.3
+hopsworks
+
+# --- Training pipeline ---
+scikit-learn>=1.5
+joblib>=1.3

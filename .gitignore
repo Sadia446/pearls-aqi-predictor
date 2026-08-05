@@ -1,0 +1,40 @@
+# --- Secrets (NEVER commit) ---
+.env
+.env.local
+*.env.local
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# --- Data / models (large or regenerable) ---
+data/
+*.parquet
+models/*.pkl
+models/*.h5
+models/*.keras
+
+# --- Personal notes (kept locally, not part of the project) ---
+docs/HOW-IT-WORKS.md
+
+# --- Streamlit secrets ---
+.streamlit/secrets.toml
+streamlit_app/.streamlit/secrets.toml
+
+# --- Node / Next.js (added in later phases) ---
+node_modules/
+.next/
+web/.env*.local
+
+# --- OS / editors ---
+.DS_Store
+Thumbs.db
+.idea/
