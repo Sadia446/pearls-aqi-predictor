@@ -1,0 +1,101 @@
+[
+  {
+    "run_id": "20260829T032407Z",
+    "trained_at": "2026-08-29 03:24:07.860145+00:00",
+    "horizon_h": 24,
+    "model_name": "persistence",
+    "rmse": 24.34712129845392,
+    "mae": 14.295038167938932,
+    "r2": 0.6373974386267995,
+    "is_best": false,
+    "artifact_path": null
+  },
+  {
+    "run_id": "20260829T032407Z",
+    "trained_at": "2026-08-29 03:24:07.860145+00:00",
+    "horizon_h": 24,
+    "model_name": "ridge",
+    "rmse": 19.40593450387925,
+    "mae": 12.666989194077635,
+    "r2": 0.7696412298311729,
+    "is_best": true,
+    "artifact_path": "C:\\Users\\Sufyan\\OneDrive\\Desktop\\pearls-aqi-predictor-main\\models\\aqi_24h_ridge.pkl"
+  },
+  {
+    "run_id": "20260829T032407Z",
+    "trained_at": "2026-08-29 03:24:07.860145+00:00",
+    "horizon_h": 24,
+    "model_name": "random_forest",
+    "rmse": 20.225222902006745,
+    "mae": 12.721642448857889,
+    "r2": 0.749779860405378,
+    "is_best": false,
+    "artifact_path": null
+  },
+  {
+    "run_id": "20260829T032407Z",
+    "trained_at": "2026-08-29 03:24:07.860145+00:00",
+    "horizon_h": 48,
+    "model_name": "persistence",
+    "rmse": 29.691726343396667,
+    "mae": 18.75552131484335,
+    "r2": 0.4630436220565549,
+    "is_best": false,
+    "artifact_path": null
+  },
+  {
+    "run_id": "20260829T032407Z",
+    "trained_at": "2026-08-29 03:24:07.860145+00:00",
+    "horizon_h": 48,
+    "model_name": "ridge",
+    "rmse": 25.155852620187126,
+    "mae": 17.258868752857634,
+    "r2": 0.6145694007225451,
+    "is_best": true,
+    "artifact_path": "C:\\Users\\Sufyan\\OneDrive\\Desktop\\pearls-aqi-predictor-main\\models\\aqi_48h_ridge.pkl"
+  },
+  {
+    "run_id": "20260829T032407Z",
+    "trained_at": "2026-08-29 03:24:07.860145+00:00",
+    "horizon_h": 48,
+    "model_name": "random_forest",
+    "rmse": 27.456894135252856,
+    "mae": 19.18649403330438,
+    "r2": 0.5408327279931121,
+    "is_best": false,
+    "artifact_path": null
+  },
+  {
+    "run_id": "20260829T032407Z",
+    "trained_at": "2026-08-29 03:24:07.860145+00:00",
+    "horizon_h": 72,
+    "model_name": "persistence",
+    "rmse": 31.37712504601796,
+    "mae": 20.93895800933126,
+    "r2": 0.40080411972413965,
+    "is_best": false,
+    "artifact_path": null
+  },
+  {
+    "run_id": "20260829T032407Z",
+    "trained_at": "2026-08-29 03:24:07.860145+00:00",
+    "horizon_h": 72,
+    "model_name": "ridge",
+    "rmse": 26.416407552812533,
+    "mae": 18.7981134870128,
+    "r2": 0.5752923983547888,
+    "is_best": true,
+    "artifact_path": "C:\\Users\\Sufyan\\OneDrive\\Desktop\\pearls-aqi-predictor-main\\models\\aqi_72h_ridge.pkl"
+  },
+  {
+    "run_id": "20260829T032407Z",
+    "trained_at": "2026-08-29 03:24:07.860145+00:00",
+    "horizon_h": 72,
+    "model_name": "random_forest",
+    "rmse": 28.42141552929422,
+    "mae": 20.280968000239476,
+    "r2": 0.5083750331830803,
+    "is_best": false,
+    "artifact_path": null
+  }
+]
