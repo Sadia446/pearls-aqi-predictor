@@ -1,0 +1,25 @@
+name: LSTM benchmark (weekly)
+
+# The deep-learning benchmark. Evaluates LSTM and scores land in Hopsworks Model Registry.
+on:
+  schedule:
+    - cron: "0 3 * * 0" # 03:00 UTC every Sunday
+  workflow_dispatch: {}
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    env:
+      HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
+      HOPSWORKS_PROJECT: ${{ secrets.HOPSWORKS_PROJECT }}
+      AQICN_TOKEN: ${{ secrets.AQICN_TOKEN }}
+      OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt -r requirements-deep.txt
+      - name: Train & score the LSTM
+        run: python -m ml.pipelines.train_lstm

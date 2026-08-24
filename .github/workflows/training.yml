@@ -1,0 +1,28 @@
+name: Training (daily)
+
+# Retrains and re-benchmarks the models daily, storing the best of each horizon
+# into Hopsworks Model Registry for the hourly inference job to pick up.
+on:
+  schedule:
+    - cron: "30 0 * * *" # 00:30 UTC daily
+  workflow_dispatch: {}
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    env:
+      AQICN_TOKEN: ${{ secrets.AQICN_TOKEN }}
+      OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+      HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
+      HOPSWORKS_PROJECT: ${{ secrets.HOPSWORKS_PROJECT }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt -r requirements-explain.txt
+      - name: Train, evaluate & register
+        run: python -m ml.pipelines.training_pipeline
+      - name: Refresh SHAP explanations
+        run: python -m ml.pipelines.explain

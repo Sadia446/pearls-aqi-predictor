@@ -1,0 +1,29 @@
+name: Feature + Inference (hourly)
+
+# Keeps the feature store current and regenerates the 3-day forecast every hour.
+on:
+  schedule:
+    - cron: "0 * * * *" # top of every hour (UTC)
+  workflow_dispatch: {} # allow manual runs from the Actions tab
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    env:
+      AQICN_TOKEN: ${{ secrets.AQICN_TOKEN }}
+      OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+      HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
+      HOPSWORKS_PROJECT: ${{ secrets.HOPSWORKS_PROJECT }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Refresh features (last 10 days)
+        run: python -m ml.pipelines.feature_pipeline
+      - name: Generate 3-day forecasts
+        run: python -m ml.pipelines.inference_pipeline
+      - name: Check for hazardous-AQI alerts
+        run: python -m ml.pipelines.alerts
