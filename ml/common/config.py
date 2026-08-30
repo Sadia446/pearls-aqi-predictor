@@ -28,14 +28,22 @@ class Settings:
 
 
 def _require(name: str) -> str:
-    """Fetch an env var, failing loudly with a helpful message if it's missing."""
     value = os.getenv(name)
+
+    if not value:
+        try:
+            import streamlit as st
+            value = st.secrets.get(name)
+        except Exception:
+            value = None
+
     if not value:
         raise RuntimeError(
-            f"Missing required environment variable '{name}'. "
-            f"Copy .env.example to .env and fill it in."
+            f"Missing required configuration '{name}'. "
+            f"Add it to your .env file locally or Streamlit Secrets when deployed."
         )
-    return value
+
+    return str(value)
 
 
 def get_settings() -> Settings:
