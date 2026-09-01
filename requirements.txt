@@ -5,7 +5,7 @@ python-dotenv>=1.0
 # --- Data processing + feature store ---
 pandas==2.2.3
 pyarrow>=14.0.0
-hopsworks
+hopsworks[python]
 
 # --- Training pipeline ---
 scikit-learn>=1.5

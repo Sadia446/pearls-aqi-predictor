@@ -92,7 +92,7 @@ def write_features(df: pd.DataFrame) -> int:
                 version=FEATURES_VERSION,
                 primary_key=["city_id", "event_time"],
                 event_time="event_time",
-                online_enabled=True,
+                time_travel_format="HUDI",
                 description="Hourly AQI and weather features",
             )
             fg.insert(df, overwrite=False, write_options={"wait_for_job": True})
@@ -116,7 +116,7 @@ def upsert_features(df: pd.DataFrame) -> int:
                 version=FEATURES_VERSION,
                 primary_key=["city_id", "event_time"],
                 event_time="event_time",
-                online_enabled=True,
+                time_travel_format="HUDI",
             )
             fg.insert(df, overwrite=False, write_options={"wait_for_job": True})
             return len(df)
@@ -144,6 +144,7 @@ def write_predictions(df: pd.DataFrame) -> int:
                 name=PREDICTIONS_FG,
                 version=PREDICTIONS_VERSION,
                 primary_key=["city_id", "horizon_h"],
+                time_travel_format="HUDI",
             )
             fg.insert(df, overwrite=True, write_options={"wait_for_job": True})
             return len(df)
@@ -166,6 +167,7 @@ def write_alerts(df: pd.DataFrame) -> int:
                 name=ALERTS_FG,
                 version=ALERTS_VERSION,
                 primary_key=["city_id"],
+                time_travel_format="HUDI",
             )
             fg.insert(df, overwrite=True, write_options={"wait_for_job": True})
             return len(df)
@@ -188,6 +190,7 @@ def write_drivers(df: pd.DataFrame) -> int:
                 name=DRIVERS_FG,
                 version=DRIVERS_VERSION,
                 primary_key=["city_id", "feature"],
+                time_travel_format="HUDI",
             )
             fg.insert(df, overwrite=True, write_options={"wait_for_job": True})
             return len(df)
