@@ -95,12 +95,15 @@ def save_active_model(
     if mr:
         reg_name = f"aqi_{horizon_h}h_active"
         try:
-            hw_model = mr.python.create_model(
-                name=reg_name,
-                metrics={"rmse": metrics["rmse"], "mae": metrics["mae"], "r2": metrics["r2"]},
-                description=f"Active serving model for +{horizon_h}h (algorithm: {model_name})",
-            )
-            hw_model.save(str(MODELS_DIR))
+            with tempfile.TemporaryDirectory() as tmpdir:
+                tmp_path = Path(tmpdir) / f"aqi_{horizon_h}h_active.pkl"
+                joblib.dump(model, tmp_path)
+                hw_model = mr.python.create_model(
+                    name=reg_name,
+                    metrics={"rmse": metrics["rmse"], "mae": metrics["mae"], "r2": metrics["r2"]},
+                    description=f"Active serving model for +{horizon_h}h (algorithm: {model_name})",
+                )
+                hw_model.save(tmpdir)
         except Exception as exc:
             print(f"    [Hopsworks] Notice saving active model: {exc}")
 
@@ -114,11 +117,17 @@ def load_active_model(horizon_h: int, *_args, **_kwargs) -> tuple[object, str]:
             hw_model = mr.get_model(reg_name)
             model_dir = hw_model.download()
             local_path = Path(model_dir) / f"aqi_{horizon_h}h_active.pkl"
+            if not local_path.exists():
+                matches = list(Path(model_dir).rglob(f"aqi_{horizon_h}h_active.pkl"))
+                if matches:
+                    local_path = matches[0]
             model = joblib.load(local_path)
-            model_name = hw_model.description.split("algorithm: ")[-1].rstrip(")")
+            model_name = "model"
+            if hw_model.description and "algorithm: " in hw_model.description:
+                model_name = hw_model.description.split("algorithm: ")[-1].rstrip(")")
             return model, model_name
-        except Exception:
-            pass
+        except Exception as exc:
+            print(f"  [Hopsworks] Notice loading {reg_name} from registry: {exc}")
 
     # Fall back to local models/ directory.
     local_path = MODELS_DIR / f"aqi_{horizon_h}h_active.pkl"
