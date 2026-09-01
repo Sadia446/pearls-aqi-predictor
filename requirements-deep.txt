@@ -1,0 +1,2 @@
+# Deep learning dependencies for LSTM benchmark
+tensorflow>=2.15

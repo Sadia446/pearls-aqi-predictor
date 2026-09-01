@@ -3,4 +3,5 @@ fastapi>=0.110
 uvicorn[standard]>=0.27
 python-dotenv>=1.0
 pandas==2.2.3
+pyarrow>=14.0.0
 hopsworks

@@ -1,0 +1,6 @@
+# Dependencies for the Streamlit dashboard
+streamlit>=1.40
+pandas==2.2.3
+pyarrow>=14.0.0
+hopsworks
+python-dotenv>=1.0
