@@ -24,7 +24,7 @@ SELECTION_TOLERANCE = 0.02
 
 # How much history to train on. 18 months still covers two winter smog
 # seasons, which is where the signal lives.
-TRAIN_WINDOW_DAYS = 550
+TRAIN_WINDOW_DAYS = 400
 
 
 def _artifact_size(model) -> int:
