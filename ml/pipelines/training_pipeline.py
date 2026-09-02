@@ -70,6 +70,13 @@ def run_training(test_frac: float = 0.2) -> pd.DataFrame:
     X_all = build_design_matrix(data, feat_cols)
     train_mask, test_mask = time_split_mask(data, test_frac)
 
+    # Validate that we have enough data before proceeding
+    if len(data) < 2:
+        raise ValueError(
+            f"Insufficient training data: {len(data)} rows found, "
+            "minimum 2 required. Check feature store connectivity and data sources."
+        )
+
     split_time = data.loc[test_mask, "event_time"].min()
     print(
         f"  {len(data)} rows, {X_all.shape[1]} model inputs. "
@@ -88,6 +95,19 @@ def run_training(test_frac: float = 0.2) -> pd.DataFrame:
         tr, te = train_mask & valid, test_mask & valid
         X_tr, y_tr = X_all[tr], target[tr]
         X_te, y_te = X_all[te], target[te]
+
+        # Validate train/test splits have data
+        if len(X_tr) == 0:
+            raise ValueError(
+                f"Empty training set for {h}h horizon. "
+                f"Check that feature store has data and targets are not all NaN."
+            )
+        if len(X_te) == 0:
+            raise ValueError(
+                f"Empty test set for {h}h horizon ({test_mask.sum()} test rows before filtering). "
+                f"Ensure data extends at least {h} hours beyond the test period cutoff. "
+                f"Consider reducing TRAIN_WINDOW_DAYS or increasing test_frac."
+            )
 
         # 1) Persistence baseline: "AQI in h hours == AQI now".
         scored = {"persistence": evaluate(y_te, data.loc[te, "aqi"])}
