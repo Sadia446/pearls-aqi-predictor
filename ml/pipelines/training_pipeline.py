@@ -22,8 +22,7 @@ import pandas as pd
 # model's own error, and invisible to a user reading a health category.
 SELECTION_TOLERANCE = 0.02
 
-# How much history to train on. Reduced from 400 to 90 days to ensure sufficient
-# test data is available for all forecast horizons (24h, 48h, 72h).
+# How much history to train on.
 TRAIN_WINDOW_DAYS = 90
 
 
@@ -68,7 +67,6 @@ def run_training(test_frac: float = 0.1) -> pd.DataFrame:
     data = add_targets(features)
     feat_cols = feature_columns(data)
     X_all = build_design_matrix(data, feat_cols)
-    train_mask, test_mask = time_split_mask(data, test_frac)
 
     # Validate that we have enough data before proceeding
     if len(data) < 2:
@@ -77,10 +75,23 @@ def run_training(test_frac: float = 0.1) -> pd.DataFrame:
             "minimum 2 required. Check feature store connectivity and data sources."
         )
 
+    # The split must reserve a buffer at the end of the timeline equal to the
+    # longest forecast horizon. Without this, test rows near "now" have no
+    # future AQI reading yet to compute target_aqi_{h}h from — shift(-h) in
+    # add_targets() pulls in NaN, and the longest horizon's test set can end
+    # up empty even though shorter horizons look fine. Sharing one buffer
+    # across all horizons keeps the comparison fair (same test window).
+    max_horizon_h = max(HORIZONS)
+    train_mask, test_mask = time_split_mask(
+        data, test_frac, max_horizon_h=max_horizon_h
+    )
+
     split_time = data.loc[test_mask, "event_time"].min()
+    test_end_time = data.loc[test_mask, "event_time"].max()
     print(
         f"  {len(data)} rows, {X_all.shape[1]} model inputs. "
-        f"Test set = everything from {split_time.date()} onward.\n"
+        f"Test set = {split_time} to {test_end_time} "
+        f"(holding back the last {max_horizon_h}h so every horizon has a real target).\n"
     )
 
     run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
@@ -105,8 +116,11 @@ def run_training(test_frac: float = 0.1) -> pd.DataFrame:
         if len(X_te) == 0:
             raise ValueError(
                 f"Empty test set for {h}h horizon ({test_mask.sum()} test rows before filtering). "
-                f"Ensure data extends at least {h} hours beyond the test period cutoff. "
-                f"Consider reducing TRAIN_WINDOW_DAYS or increasing test_frac."
+                f"Even after reserving a {max_horizon_h}h buffer at the end of the "
+                f"timeline, no test rows have a valid target_aqi_{h}h. This means "
+                f"there isn't enough history yet to fairly evaluate this horizon — "
+                f"collect more days of data, increase TRAIN_WINDOW_DAYS, or "
+                f"temporarily drop this horizon from HORIZONS."
             )
 
         # 1) Persistence baseline: "AQI in h hours == AQI now".
