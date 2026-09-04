@@ -58,7 +58,7 @@ def _print_importances(model, feature_names: list[str], top: int = 8) -> None:
         print(f"    {name:<22} {imp:6.3f}  {bar}")
 
 
-def run_training(test_frac: float = 0.2) -> pd.DataFrame:
+def run_training(test_frac: float = 0.1) -> pd.DataFrame:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
 
