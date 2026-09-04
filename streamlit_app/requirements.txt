@@ -4,3 +4,5 @@ pandas==2.2.3
 pyarrow>=14.0.0
 hopsworks
 python-dotenv>=1.0
+joblib>=1.3
+scikit-learn>=1.5
