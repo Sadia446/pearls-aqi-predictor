@@ -54,14 +54,33 @@ def build_design_matrix(data: pd.DataFrame, feature_cols: list[str]) -> pd.DataF
 
 
 def time_split_mask(
-    data: pd.DataFrame, test_frac: float = 0.2
+    data: pd.DataFrame, test_frac: float = 0.2, max_horizon_h: int = 0
 ) -> tuple[pd.Series, pd.Series]:
     """Boolean train/test masks split at a single calendar cutoff.
 
     The most recent `test_frac` of the timeline is the test set, shared across
     all cities so the boundary is a real point in time.
+
+    `max_horizon_h` reserves a buffer at the very end of the timeline: test
+    rows within that buffer of the last observed timestamp can't have a real
+    target_aqi_{h}h yet (there's no future data to pull it from), so they're
+    excluded from the test window rather than silently becoming an empty
+    (or shrinking) test set for the longer horizons.
     """
     unique_times = data["event_time"].drop_duplicates().sort_values()
-    cutoff = unique_times.iloc[int(len(unique_times) * (1 - test_frac))]
+    max_time = unique_times.max()
+    buffer_cutoff = max_time - pd.Timedelta(hours=max_horizon_h)
+
+    eligible = unique_times[unique_times <= buffer_cutoff]
+    if len(eligible) < 2:
+        raise ValueError(
+            f"Not enough history to reserve a {max_horizon_h}h buffer before "
+            f"the test cutoff. Data spans up to {max_time}, but the buffer "
+            f"requires data at or before {buffer_cutoff}. Collect more "
+            f"history, or reduce the max forecast horizon."
+        )
+
+    cutoff = eligible.iloc[int(len(eligible) * (1 - test_frac))]
     train_mask = data["event_time"] < cutoff
-    return train_mask, ~train_mask
+    test_mask = (data["event_time"] >= cutoff) & (data["event_time"] <= buffer_cutoff)
+    return train_mask, test_mask
