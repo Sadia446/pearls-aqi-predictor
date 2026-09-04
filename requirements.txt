@@ -4,7 +4,7 @@ python-dotenv>=1.0
 
 # --- Data processing + feature store ---
 pandas==2.2.3
-pyarrow>=14.0.0
+pyarrow>=14.0.0,<25.0.0
 hopsworks[python]
 
 # --- Training pipeline ---
