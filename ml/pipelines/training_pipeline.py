@@ -22,9 +22,9 @@ import pandas as pd
 # model's own error, and invisible to a user reading a health category.
 SELECTION_TOLERANCE = 0.02
 
-# How much history to train on. 18 months still covers two winter smog
-# seasons, which is where the signal lives.
-TRAIN_WINDOW_DAYS = 400
+# How much history to train on. Reduced from 400 to 90 days to ensure sufficient
+# test data is available for all forecast horizons (24h, 48h, 72h).
+TRAIN_WINDOW_DAYS = 90
 
 
 def _artifact_size(model) -> int:
