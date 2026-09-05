@@ -136,7 +136,11 @@ def upsert_features(df: pd.DataFrame) -> int:
 
 
 def write_predictions(df: pd.DataFrame) -> int:
-    """Write predictions to Hopsworks (or local fallback)."""
+    """Write predictions to Hopsworks and local fallback."""
+    # Always persist locally first so dashboard/alerts have zero latency
+    path = _get_local_file(PREDICTIONS_FG)
+    df.to_parquet(path, index=False)
+
     fs = get_feature_store()
     if fs:
         try:
@@ -144,22 +148,24 @@ def write_predictions(df: pd.DataFrame) -> int:
                 name=PREDICTIONS_FG,
                 version=PREDICTIONS_VERSION,
                 primary_key=["city_id", "horizon_h"],
+                event_time="forecast_time",
                 time_travel_format="HUDI",
             )
-            fg.insert(df, overwrite=True, write_options={"wait_for_job": True})
-            return len(df)
+            fg.insert(df, overwrite=False, write_options={"wait_for_job": True})
         except Exception as exc:
             print(f"  [Hopsworks] Prediction insert fallback: {exc}")
 
-    path = _get_local_file(PREDICTIONS_FG)
-    df.to_parquet(path, index=False)
     return len(df)
 
 
 def write_alerts(df: pd.DataFrame) -> int:
-    """Write alerts to Hopsworks (or local fallback)."""
+    """Write alerts to Hopsworks and local fallback."""
     if df.empty:
         return 0
+
+    path = _get_local_file(ALERTS_FG)
+    df.to_parquet(path, index=False)
+
     fs = get_feature_store()
     if fs:
         try:
@@ -167,22 +173,24 @@ def write_alerts(df: pd.DataFrame) -> int:
                 name=ALERTS_FG,
                 version=ALERTS_VERSION,
                 primary_key=["city_id"],
+                event_time="alert_time",
                 time_travel_format="HUDI",
             )
-            fg.insert(df, overwrite=True, write_options={"wait_for_job": True})
-            return len(df)
+            fg.insert(df, overwrite=False, write_options={"wait_for_job": True})
         except Exception as exc:
             print(f"  [Hopsworks] Alerts insert fallback: {exc}")
 
-    path = _get_local_file(ALERTS_FG)
-    df.to_parquet(path, index=False)
     return len(df)
 
 
 def write_drivers(df: pd.DataFrame) -> int:
-    """Write forecast drivers (SHAP) to Hopsworks (or local fallback)."""
+    """Write forecast drivers (SHAP) to Hopsworks and local fallback."""
     if df.empty:
         return 0
+
+    path = _get_local_file(DRIVERS_FG)
+    df.to_parquet(path, index=False)
+
     fs = get_feature_store()
     if fs:
         try:
@@ -192,25 +200,23 @@ def write_drivers(df: pd.DataFrame) -> int:
                 primary_key=["city_id", "feature"],
                 time_travel_format="HUDI",
             )
-            fg.insert(df, overwrite=True, write_options={"wait_for_job": True})
-            return len(df)
+            fg.insert(df, overwrite=False, write_options={"wait_for_job": True})
         except Exception as exc:
             print(f"  [Hopsworks] Drivers insert fallback: {exc}")
 
-    path = _get_local_file(DRIVERS_FG)
-    df.to_parquet(path, index=False)
     return len(df)
 
 
 def read_fg(name: str, version: int = 1) -> pd.DataFrame:
-    """Read all rows from a feature group."""
+    """Read all rows from a feature group with automatic local fallback."""
     fs = get_feature_store()
     if fs:
         try:
             fg = fs.get_feature_group(name, version=version)
-            return fg.read()
-        except Exception:
-            pass
+            df = fg.read()
+            if df is not None and not df.empty:
+                return df
+         except Exception as exc: print(f" [Hopsworks] read_fg('{name}') failed, using local fallback: {exc}") 
 
     path = _get_local_file(name)
     if path.exists():
