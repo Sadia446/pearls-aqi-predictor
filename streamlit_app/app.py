@@ -23,6 +23,8 @@ from ml.storage.hopsworks_store import (  # noqa: E402
     ALERTS_VERSION,
     DRIVERS_FG,
     DRIVERS_VERSION,
+    FEATURES_FG,
+    FEATURES_VERSION,
     PREDICTIONS_FG,
     PREDICTIONS_VERSION,
     read_fg,
@@ -216,14 +218,28 @@ div[data-testid="stVerticalBlockBorderWrapper"] {
 
 @st.cache_data(ttl=300)
 def load_dashboard_data():
-    latest_df = get_latest_features()
+    features_df = read_fg(FEATURES_FG, FEATURES_VERSION)
+    if not features_df.empty and "event_time" in features_df.columns:
+        if not pd.api.types.is_datetime64_any_dtype(features_df["event_time"]):
+            features_df["event_time"] = pd.to_datetime(features_df["event_time"], utc=True)
+        latest_df = (
+            features_df.sort_values("event_time")
+            .groupby("city_id")
+            .tail(1)
+            .sort_values("city_id")
+            .reset_index(drop=True)
+        )
+    else:
+        latest_df = pd.DataFrame()
+
     preds_df = read_fg(PREDICTIONS_FG, PREDICTIONS_VERSION)
     alerts_df = read_fg(ALERTS_FG, ALERTS_VERSION)
     drivers_df = read_fg(DRIVERS_FG, DRIVERS_VERSION)
     models_df = get_best_models()
-    return latest_df, preds_df, alerts_df, drivers_df, models_df
+    return features_df, latest_df, preds_df, alerts_df, drivers_df, models_df
 
-latest_all, preds_all, alerts_all, drivers_all, models_all = load_dashboard_data()
+
+features_all, latest_all, preds_all, alerts_all, drivers_all, models_all = load_dashboard_data()
 
 # Handle Navigation State via query_params or session_state
 query_params = st.query_params
@@ -470,8 +486,13 @@ with pt_col:
 
 with tr_col:
     try:
-        since_date = (pd.Timestamp.now(tz="UTC") - pd.Timedelta(hours=48)).isoformat()
-        history = read_features(city_ids=[city_id], start=since_date)
+        since_time = pd.Timestamp.now(tz="UTC") - pd.Timedelta(hours=48)
+        if not features_all.empty and "city_id" in features_all.columns and "event_time" in features_all.columns:
+            history = features_all[
+                (features_all["city_id"] == city_id) & (features_all["event_time"] >= since_time)
+            ].sort_values("event_time").reset_index(drop=True)
+        else:
+            history = pd.DataFrame()
         min_aqi_val = float(history["aqi"].min()) if not history.empty and "aqi" in history.columns else aqi_now - 15
         max_aqi_val = float(history["aqi"].max()) if not history.empty and "aqi" in history.columns else aqi_now + 20
     except Exception:
