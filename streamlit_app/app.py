@@ -107,7 +107,19 @@ html, body, [class*="css"] {
     border: 1px solid #eef2f6;
 }
 
-div[data-testid="stVerticalBlockBorderWrapper"] {
+/* Reset column wrappers so they do not create unwanted outer cards */
+div[data-testid="stColumn"] > div[data-testid="stVerticalBlockBorderWrapper"],
+div[data-testid="stColumn"] > div > div[data-testid="stVerticalBlockBorderWrapper"] {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    min-height: unset !important;
+    padding: 0 !important;
+}
+
+/* Style only the Historic Air Quality bordered container to match the Pollutants card */
+div[data-testid="stVerticalBlockBorderWrapper"]:has(div[data-testid="stAltairChart"]),
+div[data-testid="stVerticalBlockBorderWrapper"]:has(div[data-testid="stVegaLiteChart"]) {
     background-color: white !important;
     border-radius: 16px !important;
     border: 1px solid #eef2f6 !important;
