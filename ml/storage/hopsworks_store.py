@@ -216,7 +216,8 @@ def read_fg(name: str, version: int = 1) -> pd.DataFrame:
             df = fg.read()
             if df is not None and not df.empty:
                 return df
-         except Exception as exc: print(f" [Hopsworks] read_fg('{name}') failed, using local fallback: {exc}") 
+        except Exception as exc:
+            print(f"  [Hopsworks] read_fg('{name}') failed, using local fallback: {exc}") 
 
     path = _get_local_file(name)
     if path.exists():
